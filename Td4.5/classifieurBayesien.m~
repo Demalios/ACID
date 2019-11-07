@@ -2,7 +2,7 @@ close all;
 clear all;
 clc;
 
-load('VTSaumonBar.mat')
+load('VTSaumonBar3.mat')
 sizeVTSaumon = size(VTSaumon, 1)
 sizeVTBar= size(VTBar, 1)
 
@@ -22,6 +22,13 @@ sizeTrain = 400;
 errorBarML = zeros(nbIter,1);
 errorSaumonML = zeros(nbIter, 1);
 errorML = zeros(nbIter, 1);
+
+%Test Start
+errorDBarML = zeros(nbIter,1);
+errorDSaumonML = zeros(nbIter, 1);
+errorDML = zeros(nbIter, 1);
+%Test End
+
 errorBarMAP = zeros(nbIter,1);
 errorSaumonMAP = zeros(nbIter, 1);
 errorMAP = zeros(nbIter, 1);
@@ -33,7 +40,46 @@ for i=1:nbIter
         [modelSaumon] = trainModel(TrainSaumon);
         [modelBar] = trainModel(TrainBar);
        
+        %Test Start
+        % Projection entrainement
+        V= CalculACP(TrainSaumon);
+        Vb = CalculACPTrainBar);
+        
+        Ws = Vs(:,1);
+        Wb = Vb(:,1);
+        
+        Ps = Projection(Ws,TrainSaumon);
+        Pb = Projection(Wb,TrainBar);
+        
+        %Projection test
+        Vts = CalculACP(TestSaumon);
+        Vtb = CalculACP(TestBar);
+        
+        Wts = Vs(:,1);
+        Wtb = Vb(:,1);
+        
+        Pts = Projection(Wts,TestSaumon);
+        Ptb = Projection(Wtb,TestBar);
+        
+        %Génération model 1D
+        [modelDSaumon] = trainModel(Ps);
+        [modelDBar] = trainModel(Pb);
+        
+        %Test End
+        
         % ML (maximum de vraissemblance)
+        
+        %Test Start
+        ResDBar    =    myClassify(Ptb,modelDBar, modelDSaumon, 0.5, 0.5, 'B', 'S');
+        ResDSaumon =    myClassify(Pts,modelDBar, modelDSaumon, 0.5, 0.5, 'B', 'S');
+        SaumonDError = computeError(ResDSaumon, 'S');
+        BarDError = computeError(ResDBar, 'B');
+        
+        errorDSaumonML(i) = SaumonDError*100;
+        errorDBarML(i) = BarDError*100;
+        errorDML(i) = (length(Pts) * errorDSaumonML(i) + length(Ptb) *  errorDBarML(i) )/ (length(Pts) + length(Ptb));
+        %Test End
+        
         ResBar    =    myClassify(TestBar,modelBar, modelSaumon, 0.5, 0.5, 'B', 'S');
         ResSaumon =    myClassify(TestSaumon,modelBar, modelSaumon, 0.5, 0.5, 'B', 'S');
         SaumonError = computeError(ResSaumon, 'S');
@@ -58,18 +104,33 @@ MeanErrorBarML    = mean(errorBarML)
 MeanErrorSaumonML = mean(errorSaumonML)
 MeanErrorML = mean(errorML)
 
+%Test Start
+MeanDErrorBarML    = mean(errorDBarML)
+MeanDErrorSaumonML = mean(errorDSaumonML)
+MeanDErrorML = mean(errorDML)
+%Test End
+
 MeanErrorBarMAP    = mean(errorBarMAP)
 MeanErrorSaumonMAP = mean(errorSaumonMAP)
 MeanErrorMAP = mean(errorMAP)
 
-
-figure('Name', 'ML');
+figure('Name', 'ML3D');
 plot(1:nbIter, errorBarML, 'g')
 hold on
 plot(1:nbIter, errorSaumonML)
 plot(1:nbIter, errorML, 'k')
 hold off
 ylim([0 100])
+
+%Test Start
+figure('Name', 'ML1D');
+plot(1:nbIter, errorDBarML, 'g')
+hold on
+plot(1:nbIter, errorDSaumonML)
+plot(1:nbIter, errorDML, 'k')
+hold off
+ylim([0 100])
+%Test End
 
 figure('Name', 'MAP');
 plot(1:nbIter, errorBarMAP, 'g')

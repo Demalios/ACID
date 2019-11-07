@@ -17,16 +17,14 @@ scatter(X(:,1), X(:,2));
 %  A = cov(X);
 %  [V, D] = eig(A);
 
-[V] = CalculACP(X)
+V = CalculACP(X)
 
- W = V(:,1); %V*(sqrt(inv(D)))
+ W = V(:,1);
 
  P = Projection(W, X)
  
- sca(P,'r')
- 
- 
-% 
+ scatter(P, ones(200,1),'r')
+
 % Vdir1 = V(:,1)
 % Vdir2 = V(:,2)
 % x=-2:2;

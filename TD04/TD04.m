@@ -19,7 +19,7 @@ scatter(X(:,1), X(:,2));
 
 V = CalculACP(X)
 
- W = V(:,1); %V*(sqrt(inv(D)))
+ W = V(:,1);
 
  P = Projection(W, X)
  
